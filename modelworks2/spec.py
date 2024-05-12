@@ -46,5 +46,3 @@ class Spec:
             for row in reader:
                 for key, val in row.items():
                     self.trials[key].append(val)
-
-#TODO test csv IO
