@@ -20,4 +20,4 @@ First go to the [Jira board](https://itaiadd.atlassian.net/jira/software/project
     ```bash
     git push -u origin <BRANCH-NAME>
     ```
-4.  Create a pull request on GitHub and move the issue to 'In Review' on the Jira board.
+4.  Create a pull request on GitHub and move the issue to 'Needs Review' on the Jira board.
