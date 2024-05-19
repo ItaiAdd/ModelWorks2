@@ -24,11 +24,14 @@ First go to the [Jira board](https://itaiadd.atlassian.net/jira/software/project
 </br>
 </br>
 </br>
+
 ## Development Principles of MW2
 * ***Clean code is great, but, over abstraction is not***. If someone has to peel back 4 layers of abstraction contained in 5 different files....that code sucks.
 </br>
 </br>
+
 * ***Don't shoot for a perfect solution; good enough is good enough***. We can all argue about the **best** solution after we find **a** solution.
 </br>
 </br>
+
 * ***Minimise relience on anything outside of the [Python standard library](https://docs.python.org/3/library/index.html)***. If you are importing Pandas just to read a csv file then I will make a bot to spread a rumour that you put underscores in numbers. 
