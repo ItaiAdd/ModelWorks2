@@ -1,7 +1,14 @@
 from dataclasses import dataclass
 from typing import Dict, Callable, Union, Any, Optional
-import csv
 import os
+
+from .utils import (_is_file,
+                   _is_dir,
+                   _parent_dir_exists,
+                   _ends_in_file,
+                   _write_csv,
+                   _append_csv,
+                   _read_csv)
 
 
 @dataclass
@@ -9,40 +16,57 @@ class Spec:
     spec_name: str
     fit: Callable
     pred: Callable
-    metrics: Dict[str,Callable]
-    params: Optional[Dict[str:Any]] = None
+    metrics: Dict[str,Callable] = None
+    params: Optional[Dict[str,Any]] = None
     fit_params: Optional[Dict[str,Any]] = None
     pred_params: Optional[Dict[str,Any]] = None
     preprocessing: Optional[Dict[str,Callable]] = None
 
+
     def __post_init__(self) -> None:
-        self.trials = {key:[] for key in {**self.params, **self.metrics}.keys()}
-    
+        self.trials = []
+        
 
     def add_trial(self, trial) -> None:
-        for key in self.trials.keys():
-            if callable(trial[key]):
-                self.trials[key].append(trial[key].__name__)
-            else:
-                self.trials[key].append(trial[key])
-    
+        self.trials.append(trial)
 
-    def trials_to_csv(self, path) -> None:
+    
+    def trials_to_csv(self, path, overwrite=False, append=False) -> None:
         if not path:
-            print("Save path not specified.")
-        elif not os.path.exists(os.path.dirname(path)):
-            print(f"{os.path.dirname(path)} does not exist.")
-        else:
-            with open(path, "w") as file:
-                writer = csv.writer(file)
-                writer.writerow(self.trials.keys())
-                writer.writerows(zip(*self.trials.values()))
-    
+            raise ValueError("Path not provided. You must provide a path to write to.")
+        
+        elif not _parent_dir_exists(path):
+            raise ValueError(f"{os.path.dirname(path)} does not exist.")
 
-    def trials_from_csv(self, path) -> None:
-        with open(path, "r") as file:
-            reader = csv.DictReader(file, quoting=csv.QUOTE_NONNUMERIC)
-            self.trials = {key:[val] for key, val in next(reader).items()}
-            for row in reader:
-                for key, val in row.items():
-                    self.trials[key].append(val)
+        elif _is_dir(path):
+            raise ValueError(f"Supplied {path} is a directory. You must provide a filename.")
+        
+        elif not _ends_in_file(path):
+            raise ValueError("Path should end in the filename to write to.")
+        
+        elif not _is_file(path) or overwrite:
+            _write_csv(path, self.trials)
+        
+        elif append:
+            _append_csv(path, self.trials)
+        
+        else:
+            print(f"""Trials not saved. {path} already exists. Either:
+                  1. Change overwright to True to overwrite the file.
+                  2. Change append to True to append trials to the file.
+                  3. Provide a different file. """)
+            
+    
+    def trials_from_csv(self, path, replace=False) -> None:
+        if not path:
+            raise ValueError("Path not provided. You must provide a path to read from.")
+        
+        elif not _is_file(path):
+            raise ValueError(f"{path} is not a file.")
+        
+        elif replace:
+            self.trials = []
+            self.trials.extend(_read_csv(path))
+
+        else:
+            self.trials.extend(_read_csv(path))

@@ -1,0 +1,20 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "modelworks2"
+description = "ML model optimisation and testing framework with maximal compatibility and minimal dependencies."
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/ItaiAdd/ModelWorks2"
+
+[tool.pytest.ini_options]
+testpaths = "tests"
