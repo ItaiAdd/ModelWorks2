@@ -1,7 +1,7 @@
 # ModelWorks2
 
 ## How to Contribute
-First go to the [Jira board](https://itaiadd.atlassian.net/jira/software/projects/MW2/boards/1){:target="_blank"} to see unassigned issues or to create a new one. Assign the issue to yourself and move the issue to 'In Progress' then follow the steps below. 
+First go to the [Jira board](https://itaiadd.atlassian.net/jira/software/projects/MW2/boards/1) to see unassigned issues or to create a new one. Assign the issue to yourself and move the issue to 'In Progress' then follow the steps below. 
 
 1.  Clone the repository with
     ```bash
@@ -34,4 +34,4 @@ First go to the [Jira board](https://itaiadd.atlassian.net/jira/software/project
 </br>
 </br>
 
-* ***Minimise relience on anything outside of the [Python standard library](https://docs.python.org/3/library/index.html){:target="_blank"}***. If you are importing Pandas just to read a csv file then I will make a bot to spread a rumour that you put underscores in numbers. 
+* ***Minimise relience on anything outside of the [Python standard library](https://docs.python.org/3/library/index.html)***. If you are importing Pandas just to read a csv file then I will make a bot to spread a rumour that you put underscores in numbers. 
