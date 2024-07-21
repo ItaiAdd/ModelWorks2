@@ -27,7 +27,7 @@ def _ends_in_file(p) -> bool:
 
 def _write_csv(p, trials) -> None:
     with open(p, "w", newline="") as file:
-        writer = csv.DictWriter(file, fieldnames=list(trials[0]).keys())
+        writer = csv.DictWriter(file, fieldnames=list(trials[0].keys()))
         writer.writeheader()
         writer.writerows(trials)
 
