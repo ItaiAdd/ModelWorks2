@@ -58,6 +58,9 @@ class FloatDist(BaseDistribution):
 
     Attributes
     ----------
+    name: str
+        Name of the parameter.
+        
     min_val: float
         Minimum allowed value of the parameter.
 
@@ -86,9 +89,10 @@ class FloatDist(BaseDistribution):
         
     """
 
-    def __init__(self, min_val:float, max_val:float,
+    def __init__(self, name:str, min_val:float, max_val:float,
                     step:float|None=None, log:bool=False) -> None:
         
+        self.name = name
         self.min_val = min_val
         self.max_val = max_val
         self.step = step
