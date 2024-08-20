@@ -8,6 +8,20 @@ class BaseDistribution(abc.ABC):
     """
     Abstract base class for all parameter distributions. This defines
     the methods a standard or custom parameter distribution must implement.
+
+    Attributes
+    ----------
+    name: str
+        Name of the parameter.
+    
+    Methods
+    -------
+    sample:
+        draw n a sample from the parameter space.
+    
+    sample_unique:
+        Draw n unique samples from the parameter space.
+
     """
     def __init__(self, name:str) -> None:
         self.name = name
@@ -76,6 +90,9 @@ class FloatDist(BaseDistribution):
     log: bool (default is False)
         If True, samples are drawn from a log-uniform distribution, if False,
         samples are drawn from a regular uniform distribution.
+    
+    max_attempts: int
+        Maximum number of attempts at finding a sample of unique values.
 
         
     Methods
@@ -93,13 +110,14 @@ class FloatDist(BaseDistribution):
     """
 
     def __init__(self, name:str, min_val:float, max_val:float,
-                    step:float|None=None, log:bool=False) -> None:
+                    step:float|None=None, log:bool=False, max_attempts:int=1000) -> None:
         
         super().__init__(name)
         self.min_val = min_val
         self.max_val = max_val
         self.step = step
         self.log = log
+        self.max_attempts = max_attempts
 
         # If a step is specified, find the maximum number of unique values 
         # between min_val and max_val separated by step. 
@@ -165,14 +183,14 @@ class FloatDist(BaseDistribution):
             n_allowed = n
 
         sample = set()
-        trys = 0
+        attempts = 0
 
-        while (len(sample) < n_allowed) and trys<1000:
+        while (len(sample) < n_allowed) and (attempts<self.max_attempts):
             s = self.sample(n_allowed)
             sample.update(s)
-            trys += 1
+            attempts += 1
         
-        if (trys == 1000) and (len(sample) < n_allowed):
+        if (attempts == self.max_attempts) and (len(sample) < n_allowed):
             warnings.warn(f"Failed to find maximum possible unique samples. "
                           f"Maximum is {n_allowed} but only found {len(sample)}")
             
