@@ -7,8 +7,11 @@ import warnings
 class BaseDistribution(abc.ABC):
     """
     Abstract base class for all parameter distributions. This defines
-    the methods a standard or custom parameter distribution must implement. 
+    the methods a standard or custom parameter distribution must implement.
     """
+    def __init__(self, name:str) -> None:
+        self.name = name
+
 
     @abc.abstractmethod
     def sample(self, n:int=1) -> Any|List[Any]:
@@ -60,7 +63,7 @@ class FloatDist(BaseDistribution):
     ----------
     name: str
         Name of the parameter.
-        
+
     min_val: float
         Minimum allowed value of the parameter.
 
@@ -92,7 +95,7 @@ class FloatDist(BaseDistribution):
     def __init__(self, name:str, min_val:float, max_val:float,
                     step:float|None=None, log:bool=False) -> None:
         
-        self.name = name
+        super().__init__(name)
         self.min_val = min_val
         self.max_val = max_val
         self.step = step
