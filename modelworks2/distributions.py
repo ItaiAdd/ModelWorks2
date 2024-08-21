@@ -160,8 +160,8 @@ class FloatDist(BaseDistribution):
     def sample_unique(self, n:int) -> List[float]:
         """
         Attempts to find n unique samples of the parameter by repeatedly calling self.sample 
-        (max attempts = 1000). If self.step does not allow n unique values between self.min_val
-        and self.max_val, the method attemps to find the maximum possible unique samples,
+        up to self.max_unique_sample_size. If self.step does not allow n unique values between
+        self.min_val and self.max_val, the method attemps to find the maximum possible unique samples,
         self.max_unique_sample_size. If self.max_unique_sample_size have not been found,
         whatever has been found is returned with a warning message.
 
