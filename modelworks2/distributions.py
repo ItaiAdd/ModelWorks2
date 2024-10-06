@@ -112,6 +112,10 @@ class FloatDist(BaseDistribution):
     def __init__(self, name:str, min_val:float, max_val:float,
                     step:float|None=None, log:bool=False, max_attempts:int=1000) -> None:
         
+        if log and (min_val<0 or max_val<0):
+            raise ValueError(f"Negative bound not allowed for log=True. "
+                             f"min_val and max_val must be positive for log-uniform sampling (log=True).")
+
         super().__init__(name)
         self.min_val = min_val
         self.max_val = max_val
@@ -147,7 +151,7 @@ class FloatDist(BaseDistribution):
             of self.step greater than or equal to self.min_val. 
         """
         if self.log:
-            sample = np.random.uniform(np.log(self.min_val), np.log(self.max_val), n)
+            sample = np.exp(np.random.uniform(np.log(self.min_val), np.log(self.max_val), n))
         else:
             sample = np.random.uniform(self.min_val, self.max_val, n)
 
