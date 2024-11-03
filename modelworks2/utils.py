@@ -1,6 +1,9 @@
 import os 
 import csv
-from typing import Dict, List, Any, Tuple
+from inspect import isclass
+from typing import Dict, List, Any, Tuple, Callable
+
+from .distributions import BaseDistribution
 
 
 def _is_file(p) -> bool:
@@ -62,68 +65,44 @@ def _read_csv(p) -> List[Dict]:
         reader = csv.DictReader(file)
         rows = [_restore_dtype_csv(row) for row in reader]
         return rows
-    
-
-def _callable_to_name(x: Any) -> Dict|List|str:
-    if isinstance(x, list):
-        return [_callable_to_name(e) for e in x]
-    
-    elif isinstance(x, dict):
-        return {k:_callable_to_name(v) for k, v in x.items()}
-    
-    elif callable(x):
-        return x.__name__
-    
-    else:
-        return x
-    
-
-def _tuples_to_json_list(x:Any) -> Any:
-    if isinstance(x, list):
-        return [_tuples_to_json_list(e) for e in x]
-    
-    elif isinstance(x, dict):
-        return {k:_tuples_to_json_list(v) for k, v in x.items()}
-    
-    elif isinstance(x, tuple):
-        x_new = list(x) + ['__tuple__']
-        return _tuples_to_json_list(x_new)
-    
-    else:
-        return x
 
 
-def _json_lists_to_tuple(x: Any) -> Any:
-    if isinstance(x, dict):
-        return {k: _json_lists_to_tuple(v) for k, v in x.items()}
+def _spec_to_json_dict(x:Any) -> Any:
+    if isinstance(x, BaseDistribution):
+        return {'BaseDistribution':{'name':x.__class__.__name__, 'params':_spec_to_json_dict(x.__dict__)}}
     
     elif isinstance(x, list):
-        if '__tuple__' in x:
-            x.remove('__tuple__')
-            return tuple(_json_lists_to_tuple(e) for e in x)
-        else:
-            return [_json_lists_to_tuple(e) for e in x]
+        return [_spec_to_json_dict(e) for e in x]
     
-    elif isinstance(x, tuple):
-        return tuple(_json_lists_to_tuple(e) for e in x)
+    elif isinstance(x, dict):
+        return {k:_spec_to_json_dict(v) for k, v in x.items()}
+    
+    elif callable(x):
+        return {'__callable__':x.__name__}
+    
+    else:
+        return x
+
+
+def _json_to_spec(x:Any, mapping:Dict) -> Any:
+    if isinstance(x, dict):
+        if 'BaseDistribution' in x:
+            name = x['BaseDistribution']['name']
+            params = x['BaseDistribution']['params']
+            return mapping[name](**_json_to_spec(params, mapping))
+    
+        elif '__callable__' in x:
+            return mapping[x['__callable__']]
+        
+        else:
+            return {k:_json_to_spec(v, mapping) for k, v in x.items()}
+        
+    elif isinstance(x, list):
+        return [_json_to_spec(e, mapping) for e in x]
     
     else:
         return x
     
 
-def _names_to_callables(x:Any, mapping:Dict) -> Any:
-    if isinstance(x, list):
-        return [_names_to_callables(e, mapping) for e in x]
-    
-    elif isinstance(x, dict):
-        return {k:_names_to_callables(v, mapping) for k, v in x.items()}
-    
-    elif isinstance(x, tuple):
-        x_temp = list(x)
-        return tuple([_names_to_callables(e, mapping) for e in x_temp])
-    
-    elif x in list(mapping.keys()):
-        return mapping[x]
-    
-    else:
-        return x
+def _callables_mapping(callables:List[Callable]) -> Dict[str, Callable]:
+    return {c.__name__ :c for c in callables}
