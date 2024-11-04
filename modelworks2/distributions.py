@@ -68,7 +68,6 @@ class BaseDistribution(abc.ABC):
         raise NotImplementedError
     
 
-
 class FloatDist(BaseDistribution):
     """
     Distribution class for parameters of type float.
@@ -122,13 +121,10 @@ class FloatDist(BaseDistribution):
         self.step = step
         self.log = log
         self.max_attempts = max_attempts
-
-        # If a step is specified, find the maximum number of unique values 
-        # between min_val and max_val separated by step. 
-        if step:
-            self.max_unique_sample_size = ((max_val - min_val)//step)*step + 1
         
-
+    def max_unique_sample_size(self) -> int:
+        if self.step:
+            return ((self.max_val - self.min_val)//self.step)*self.step + 1
 
     def sample(self, n:int) -> List[float]:
         """
@@ -179,10 +175,10 @@ class FloatDist(BaseDistribution):
         sample: list[floats]
             len(sample) <= self.max_unique_sample_size.
         """
-        if self.step and (self.max_unique_sample_size < n):
-            n_allowed = int(self.max_unique_sample_size)
+        if self.step and (self.max_unique_sample_size() < n):
+            n_allowed = int(self.max_unique_sample_size())
             warnings.warn(f"{n} unique samples are impossible with step={self.step}. "
-                          f"{self.max_unique_sample_size} is the maximum possible number of unique samples.")
+                          f"{self.max_unique_sample_size()} is the maximum possible number of unique samples.")
         else:
             n_allowed = n
 

@@ -1,8 +1,10 @@
 from dataclasses import dataclass
-from typing import Dict, Callable, Union, Any, Optional, Tuple, Generator
+from typing import Dict, Callable, Union, Any, Optional, Tuple, Generator, List
 import os
 import json
+from inspect import isclass
 
+from .distributions import BaseDistribution
 from .utils import (_is_file,
                    _is_dir,
                    _parent_dir_exists,
@@ -10,22 +12,21 @@ from .utils import (_is_file,
                    _write_csv,
                    _append_csv,
                    _read_csv,
-                   _callable_to_name,
-                   _tuples_to_json_list,
-                   _json_lists_to_tuple,
-                   _names_to_callables)
+                   _json_to_spec,
+                   _spec_to_json_dict,
+                   _callables_mapping)
 
 
 @dataclass
 class Spec:
-    spec_name: str = None
-    fit: Callable|str = None
-    pred: Callable|str = None
-    metrics: Dict[str,Callable|str] = None
-    params: Optional[Dict[str,Any]] = None
+    spec_name: Optional[str] = None
+    fit: Optional[Callable|str] = None
+    pred: Optional[Callable|str] = None
+    metrics: Optional[Dict[str,Callable|str]] = None
+    params: Optional[List[BaseDistribution]] = None
     fit_params: Optional[Dict[str,Any]] = None
     pred_params: Optional[Dict[str,Any]] = None
-    preprocessing: Optional[Dict[str,Callable|str]] = None
+    preprocessing: Optional[Dict[str,Callable]] = None
 
 
     def __post_init__(self) -> None:
@@ -93,7 +94,7 @@ class Spec:
         for attr, val in self.to_dict().items():
             yield attr, val
 
-
+# TODO make save_spec work with Dists
     def save_spec(self, path, overwrite=False) -> None:
         if not path:
             raise ValueError("Path not provided. You must provide a path to write to.")
@@ -111,17 +112,18 @@ class Spec:
             spec_dict = {}
 
             for attr, val in self:
-                spec_dict[attr] = _tuples_to_json_list(_callable_to_name(val))
+                spec_dict[attr] = _spec_to_json_dict(val)
 
             with open(path, 'w') as file:
                 json.dump(spec_dict, file)
 
 
-    def load_spec(self, path) -> None:
+    def load_spec(self, path, callables:List[Callable]) -> None:
+        mapping = _callables_mapping(callables)
         with open(path, "r") as file:
             spec_data = json.load(file)
             for attr, _ in self:
-                setattr(self, attr, _json_lists_to_tuple(spec_data[attr]))
+                setattr(self, attr, _json_to_spec(spec_data[attr], mapping))
 
 
     def trials_from_spec(self, path, replace=False) -> None:
@@ -136,14 +138,3 @@ class Spec:
 
             else:
                 self.trials.extend(spec_data['trials'])
-
-
-    def names_to_callables(self, callables:list) -> None:
-        mapping = {e.__name__:e for e in callables}
-
-        for attr, val in self:
-            if attr in ['spec_name', 'trials']:
-                continue
-
-            else:
-                setattr(self, attr, _names_to_callables(val, mapping))
