@@ -198,6 +198,29 @@ class FloatDist(BaseDistribution):
     
 
 class CatDist(BaseDistribution):
+    """
+    Distribution class for categorical parameters.
+
+    Attributes
+    ----------
+    name: str
+        The name of the parameter.
+    
+    options: list[Any]
+        The values the parameter is allowed to take.
+
+    Methods
+    -------
+    sample:
+        Returns a list of n items from self.options. If n == len(self.options)
+        a list of each option is returned. If n > len(self.options), the returned
+        list is guaranteed to contain every option at lest once.
+
+    sample_unique:
+        Returns a list of unique samples from self.options. If requested number (n)
+        is greater than len(self.options) the maximum unique samples are returned 
+        which is simply self.options.
+    """
 
     def __init__(self, name:str, options:List[Any]) -> None:
         super().__init__(name=name)
@@ -205,6 +228,20 @@ class CatDist(BaseDistribution):
 
 
     def sample(self, n = 1) -> List[Any]:
+        """
+        Samples self.options.
+
+        Parameters
+        ----------
+        n: int
+            Number of samples to draw. If n >= len(self.options), the returned samples will contain
+            every option in self.options.
+
+        Returns
+        -------
+        sample: list[Any]
+             List of n samples from self.options.
+        """
         if n > len(self.options):
             extra = np.random.choice(self.options, n-len(self.options))
             extra.extend(self.options)
@@ -218,6 +255,20 @@ class CatDist(BaseDistribution):
         
 
     def sample_unique(self, n) -> List[Any]:
+        """
+        Draws unique samples from self.options.
+
+        Parameters
+        ----------
+        n: int
+            The number of saamples to return. if n >= len(self.options), the maximum unique samples
+            are returned equivalent to self.options.
+
+        Returns
+        -------
+        samples: list[Any]
+            The unique samples from self.options.
+        """
         if n > len(self.options):
             warnings.warn(f"{self.name}: {n} unique samples are impossible with only {len(self.options)} options. "
                           f"Returned {len(self.options)} unique samples (all options).")
