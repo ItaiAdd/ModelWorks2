@@ -115,14 +115,14 @@ class FloatDist(BaseDistribution):
             raise ValueError(f"Negative bound not allowed for log=True. "
                              f"min_val and max_val must be positive for log-uniform sampling (log=True).")
 
-        super().__init__(name)
+        super().__init__(name=name)
         self.min_val = min_val
         self.max_val = max_val
         self.step = step
         self.log = log
         self.max_attempts = max_attempts
         
-    def max_unique_sample_size(self) -> int:
+    def _max_unique_sample_size(self) -> int:
         if self.step:
             return ((self.max_val - self.min_val)//self.step)*self.step + 1
 
@@ -175,10 +175,10 @@ class FloatDist(BaseDistribution):
         sample: list[floats]
             len(sample) <= self.max_unique_sample_size.
         """
-        if self.step and (self.max_unique_sample_size() < n):
-            n_allowed = int(self.max_unique_sample_size())
-            warnings.warn(f"{n} unique samples are impossible with step={self.step}. "
-                          f"{self.max_unique_sample_size()} is the maximum possible number of unique samples.")
+        if self.step and (self._max_unique_sample_size() < n):
+            n_allowed = int(self._max_unique_sample_size())
+            warnings.warn(f"{self.name}: {n} unique samples are impossible with step={self.step}. "
+                          f"{self._max_unique_sample_size()} is the maximum possible number of unique samples.")
         else:
             n_allowed = n
 
@@ -195,3 +195,85 @@ class FloatDist(BaseDistribution):
                           f"Maximum is {n_allowed} but only found {len(sample)}")
             
         return list(sample)
+    
+
+class CatDist(BaseDistribution):
+    """
+    Distribution class for categorical parameters.
+
+    Attributes
+    ----------
+    name: str
+        The name of the parameter.
+    
+    options: list[Any]
+        The values the parameter is allowed to take.
+
+    Methods
+    -------
+    sample:
+        Returns a list of n items from self.options. If n == len(self.options)
+        a list of each option is returned. If n > len(self.options), the returned
+        list is guaranteed to contain every option at lest once.
+
+    sample_unique:
+        Returns a list of unique samples from self.options. If requested number (n)
+        is greater than len(self.options) the maximum unique samples are returned 
+        which is simply self.options.
+    """
+
+    def __init__(self, name:str, options:List[Any]) -> None:
+        super().__init__(name=name)
+        self.options = options
+
+
+    def sample(self, n = 1) -> List[Any]:
+        """
+        Samples self.options.
+
+        Parameters
+        ----------
+        n: int
+            Number of samples to draw. If n >= len(self.options), the returned samples will contain
+            every option in self.options.
+
+        Returns
+        -------
+        sample: list[Any]
+             List of n samples from self.options.
+        """
+        if n > len(self.options):
+            extra = np.random.choice(self.options, n-len(self.options))
+            extra.extend(self.options)
+            return extra
+        
+        if n == len(self.options):
+            return self.options
+
+        else:
+            return np.random.choice(self.options, n)
+        
+
+    def sample_unique(self, n) -> List[Any]:
+        """
+        Draws unique samples from self.options.
+
+        Parameters
+        ----------
+        n: int
+            The number of saamples to return. if n >= len(self.options), the maximum unique samples
+            are returned equivalent to self.options.
+
+        Returns
+        -------
+        samples: list[Any]
+            The unique samples from self.options.
+        """
+        if n > len(self.options):
+            warnings.warn(f"{self.name}: {n} unique samples are impossible with only {len(self.options)} options. "
+                          f"Returned {len(self.options)} unique samples (all options).")
+            
+            return self.options
+        
+        else:
+            return np.random.choice(self.options, n, replace=False)
