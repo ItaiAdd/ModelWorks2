@@ -131,7 +131,7 @@ class FloatDist(BaseDistribution):
         Samples a uniform or log-uniform distribution between self.min_val and self.max_val.
         If self.log is True, values are sampled from a log-uniform distribution and from a
         regular uniform distribution otherwise. If self.step is True, all sampled values are
-        rounded to the nearest multiple of self.step greater than or equal to self.min_val. 
+        rounded to the nearest multiple of self.step greater than or equal to self.min_val.
 
         Parameters
         ----------
@@ -277,3 +277,37 @@ class CatDist(BaseDistribution):
         
         else:
             return np.random.choice(self.options, n, replace=False)
+    
+
+class IntDist(BaseDistribution):
+
+    def __init__(self, name:str, min_val:int, max_val:int,
+                    step:int|None=None, log:bool=False, max_attempts:int=1000) -> None:
+        
+        if log and (min_val<0 or max_val<0):
+            raise ValueError(f"Negative bound not allowed for log=True. "
+                             f"min_val and max_val must be positive for log-uniform sampling (log=True).")
+
+        super().__init__(name=name)
+        self.min_val = min_val
+        self.max_val = max_val
+        self.step = step
+        self.log = log
+        self.max_attempts = max_attempts
+
+    
+    def _max_unique_sample_size(self) -> int:
+        if self.step:
+            return ((self.max_val - self.min_val)//self.step)*self.step + 1
+        
+
+    def sample(self, n:int) -> List[int]:
+        if self.log:
+            sample = np.exp(np.random.uniform(np.log(self.min_val), np.log(self.max_val), n))
+        else:
+            sample = np.random.uniform(self.min_val, self.max_val, n)
+
+        if self.step:
+            sample = ((sample - self.min_val) // self.step) * self.step + self.min_val
+        
+        return list(sample)
